@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Prometheus;
 
 class MetricFamilySamples
@@ -48,7 +46,7 @@ class MetricFamilySamples
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName()
     {
         return $this->name;
     }
@@ -56,7 +54,7 @@ class MetricFamilySamples
     /**
      * @return string
      */
-    public function getType(): string
+    public function getType()
     {
         return $this->type;
     }
@@ -64,7 +62,7 @@ class MetricFamilySamples
     /**
      * @return string
      */
-    public function getHelp(): string
+    public function getHelp()
     {
         return $this->help;
     }
@@ -72,7 +70,7 @@ class MetricFamilySamples
     /**
      * @return Sample[]
      */
-    public function getSamples(): array
+    public function getSamples()
     {
         return $this->samples;
     }
@@ -80,7 +78,7 @@ class MetricFamilySamples
     /**
      * @return string[]
      */
-    public function getLabelNames(): array
+    public function getLabelNames()
     {
         return $this->labelNames;
     }
@@ -88,7 +86,7 @@ class MetricFamilySamples
     /**
      * @return bool
      */
-    public function hasLabelNames(): bool
+    public function hasLabelNames()
     {
         return $this->labelNames !== [];
     }

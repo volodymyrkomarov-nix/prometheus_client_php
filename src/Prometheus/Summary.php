@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Prometheus;
 
 use InvalidArgumentException;
@@ -33,11 +31,11 @@ class Summary extends Collector
      */
     public function __construct(
         Adapter $adapter,
-        string $namespace,
-        string $name,
-        string $help,
+        $namespace,
+        $name,
+        $help,
         array $labels = [],
-        int $maxAgeSeconds = 600,
+        $maxAgeSeconds = 600,
         array $quantiles = null
     ) {
         parent::__construct($adapter, $namespace, $name, $help, $labels);
@@ -81,7 +79,7 @@ class Summary extends Collector
      *
      * @return float[]
      */
-    public static function getDefaultQuantiles(): array
+    public static function getDefaultQuantiles()
     {
         return [
             0.01,
@@ -96,7 +94,7 @@ class Summary extends Collector
      * @param double $value e.g. 123
      * @param string[]  $labels e.g. ['status', 'opcode']
      */
-    public function observe(float $value, array $labels = []): void
+    public function observe($value, array $labels = [])
     {
         $this->assertLabelsAreDefinedCorrectly($labels);
 
@@ -117,7 +115,7 @@ class Summary extends Collector
     /**
      * @return string
      */
-    public function getType(): string
+    public function getType()
     {
         return self::TYPE;
     }

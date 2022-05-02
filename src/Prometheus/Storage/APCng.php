@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Prometheus\Storage;
 
 use APCUIterator;
@@ -36,7 +34,7 @@ class APCng implements Adapter
      *
      * @throws StorageException
      */
-    public function __construct(string $prometheusPrefix = self::PROMETHEUS_PREFIX)
+    public function __construct($prometheusPrefix = self::PROMETHEUS_PREFIX)
     {
         if (!extension_loaded('apcu')) {
             throw new StorageException('APCu extension is not loaded');
@@ -52,7 +50,7 @@ class APCng implements Adapter
     /**
      * @return MetricFamilySamples[]
      */
-    public function collect(): array
+    public function collect()
     {
         $metrics = $this->collectHistograms();
         $metrics = array_merge($metrics, $this->collectGauges());
@@ -65,7 +63,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @throws RuntimeException
      */
-    public function updateHistogram(array $data): void
+    public function updateHistogram(array $data)
     {
         // Initialize or atomically increment the sum
         // Taken from https://github.com/prometheus/client_golang/blob/66058aac3a83021948e5fb12f1f408ff556b9037/prometheus/value.go#L91
@@ -114,7 +112,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @throws RuntimeException
      */
-    public function updateSummary(array $data): void
+    public function updateSummary(array $data)
     {
         // store value key; store metadata & labels if new
         $valueKey = $this->valueKey($data);
@@ -151,7 +149,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @throws RuntimeException
      */
-    public function updateGauge(array $data): void
+    public function updateGauge(array $data)
     {
         $valueKey = $this->valueKey($data);
         if ($data['command'] === Adapter::COMMAND_SET) {
@@ -182,7 +180,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @throws RuntimeException
      */
-    public function updateCounter(array $data): void
+    public function updateCounter(array $data)
     {
         // Taken from https://github.com/prometheus/client_golang/blob/66058aac3a83021948e5fb12f1f408ff556b9037/prometheus/value.go#L91
         $valueKey = $this->valueKey($data);
@@ -208,7 +206,7 @@ class APCng implements Adapter
      * @param string $labels
      * @return string
      */
-    private function assembleLabelKey(array $metaData, string $labels): string
+    private function assembleLabelKey(array $metaData, $labels)
     {
         return implode(':', [ $this->prometheusPrefix, $metaData['type'], $metaData['name'], $labels, 'label' ]);
     }
@@ -219,7 +217,7 @@ class APCng implements Adapter
      * @param array<mixed> $data
      * @return void
      */
-    private function storeLabelKeys(array $data): void
+    private function storeLabelKeys(array $data)
     {
         // Store labelValues in each labelName key
         foreach ($data['labelNames'] as $seq => $label) {
@@ -239,7 +237,7 @@ class APCng implements Adapter
      * @return void
      * @throws RuntimeException
      */
-    private function addItemToKey(string $key, string $item): void
+    private function addItemToKey($key, $item)
     {
         // Modify serialized array stored in $key
         $arr = apcu_fetch($key);
@@ -262,7 +260,7 @@ class APCng implements Adapter
      *
      * @return void
      */
-    public function wipeStorage(): void
+    public function wipeStorage()
     {
         //                   /      / | PCRE expresion boundary
         //                    ^       | match from first character only
@@ -281,7 +279,7 @@ class APCng implements Adapter
      * @param int $ttl
      * @return void
      */
-    public function setMetainfoTTL(int $ttl): void
+    public function setMetainfoTTL($ttl)
     {
         $this->metainfoCacheTTL = $ttl;
     }
@@ -302,7 +300,7 @@ class APCng implements Adapter
      * @param int $apc_ttl
      * @return array<string>
      */
-    private function scanAndBuildMetainfoCache(int $apc_ttl = 1): array
+    private function scanAndBuildMetainfoCache($apc_ttl = 1)
     {
         $arr = [];
         $matchAllMeta = sprintf('/^%s:.*:meta/', $this->prometheusPrefix);
@@ -319,7 +317,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @return string
      */
-    private function metaKey(array $data): string
+    private function metaKey(array $data)
     {
         return implode(':', [$this->prometheusPrefix, $data['type'], $data['name'], 'meta']);
     }
@@ -328,7 +326,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @return string
      */
-    private function valueKey(array $data): string
+    private function valueKey(array $data)
     {
         return implode(':', [
             $this->prometheusPrefix,
@@ -344,7 +342,7 @@ class APCng implements Adapter
      * @param string|int $bucket
      * @return string
      */
-    private function histogramBucketValueKey(array $data, $bucket): string
+    private function histogramBucketValueKey(array $data, $bucket)
     {
         return implode(':', [
             $this->prometheusPrefix,
@@ -360,7 +358,7 @@ class APCng implements Adapter
      * @param mixed[] $data
      * @return mixed[]
      */
-    private function metaData(array $data): array
+    private function metaData(array $data)
     {
         $metricsMetaData = $data;
         unset($metricsMetaData['value'], $metricsMetaData['command'], $metricsMetaData['labelValues']);
@@ -388,7 +386,7 @@ class APCng implements Adapter
      * @param array<array> $labelValues
      * @return array<array>
      */
-    private function buildPermutationTree(array $labelNames, array $labelValues): array /** @phpstan-ignore-line */
+    private function buildPermutationTree(array $labelNames, array $labelValues) /** @phpstan-ignore-line */
     {
         $treeRowCount = count(array_keys($labelNames));
         $numElements = 1;
@@ -416,7 +414,7 @@ class APCng implements Adapter
     /**
      * @return MetricFamilySamples[]
      */
-    private function collectCounters(): array
+    private function collectCounters()
     {
         $counters = [];
         foreach ($this->getMetas('counter') as $counter) {
@@ -450,7 +448,7 @@ class APCng implements Adapter
      * @param string $type
      * @return array<array>
      */
-    private function getMetas(string $type): array /** @phpstan-ignore-line */
+    private function getMetas($type) /** @phpstan-ignore-line */
     {
         $arr = [];
         $metaCache = apcu_fetch($this->metainfoCacheKey);
@@ -472,7 +470,7 @@ class APCng implements Adapter
      * @param array<mixed> $metaData
      * @return array<array>
      */
-    private function getValues(string $type, array $metaData): array /** @phpstan-ignore-line */
+    private function getValues($type, array $metaData) /** @phpstan-ignore-line */
     {
         $labels = $arr = [];
         foreach (array_values($metaData['labelNames']) as $label) {
@@ -506,7 +504,7 @@ class APCng implements Adapter
     /**
      * @return MetricFamilySamples[]
      */
-    private function collectGauges(): array
+    private function collectGauges()
     {
         $gauges = [];
         foreach ($this->getMetas('gauge') as $gauge) {
@@ -537,7 +535,7 @@ class APCng implements Adapter
     /**
      * @return MetricFamilySamples[]
      */
-    private function collectHistograms(): array
+    private function collectHistograms()
     {
         $histograms = [];
         foreach ($this->getMetas('histogram') as $histogram) {
@@ -613,7 +611,7 @@ class APCng implements Adapter
     /**
      * @return MetricFamilySamples[]
      */
-    private function collectSummaries(): array
+    private function collectSummaries()
     {
         $math = new Math();
         $summaries = [];
@@ -708,7 +706,7 @@ class APCng implements Adapter
      * @return int
      * @throws RuntimeException
      */
-    private function toBinaryRepresentationAsInteger($val): int
+    private function toBinaryRepresentationAsInteger($val)
     {
         $packedDouble = pack('d', $val);
         if ((bool)$packedDouble !== false) {
@@ -725,7 +723,7 @@ class APCng implements Adapter
      * @return float
      * @throws RuntimeException
      */
-    private function fromBinaryRepresentationAsInteger($val): float
+    private function fromBinaryRepresentationAsInteger($val)
     {
         $packedBinary = pack('Q', $val);
         if ((bool)$packedBinary !== false) {
@@ -740,9 +738,9 @@ class APCng implements Adapter
     /**
      * @param mixed[] $samples
      */
-    private function sortSamples(array &$samples): void
+    private function sortSamples(array &$samples)
     {
-        usort($samples, function ($a, $b): int {
+        usort($samples, function ($a, $b) {
             return strcmp(implode("", $a['labelValues']), implode("", $b['labelValues']));
         });
     }
@@ -752,7 +750,7 @@ class APCng implements Adapter
      * @return string
      * @throws RuntimeException
      */
-    private function encodeLabelValues(array $values): string
+    private function encodeLabelValues(array $values)
     {
         $json = json_encode($values);
         if (false === $json) {
@@ -766,7 +764,7 @@ class APCng implements Adapter
      * @return mixed[]
      * @throws RuntimeException
      */
-    private function decodeLabelValues(string $values): array
+    private function decodeLabelValues($values)
     {
         $json = base64_decode($values, true);
         if (false === $json) {
@@ -783,7 +781,7 @@ class APCng implements Adapter
      * @param string $keyString
      * @return string
      */
-    private function encodeLabelKey(string $keyString): string
+    private function encodeLabelKey($keyString)
     {
         return base64_encode($keyString);
     }
@@ -793,7 +791,7 @@ class APCng implements Adapter
      * @return string
      * @throws RuntimeException
      */
-    private function decodeLabelKey(string $str): string
+    private function decodeLabelKey($str)
     {
         $decodedKey = base64_decode($str, true);
         if (false === $decodedKey) {

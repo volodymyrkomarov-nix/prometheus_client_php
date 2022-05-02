@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Prometheus;
 
 use InvalidArgumentException;
@@ -26,9 +24,9 @@ class Histogram extends Collector
      */
     public function __construct(
         Adapter $adapter,
-        string $namespace,
-        string $name,
-        string $help,
+        $namespace,
+        $name,
+        $help,
         array $labels = [],
         array $buckets = null
     ) {
@@ -61,7 +59,7 @@ class Histogram extends Collector
      *
      * @return float[]
      */
-    public static function getDefaultBuckets(): array
+    public static function getDefaultBuckets()
     {
         return [
             0.005,
@@ -88,7 +86,7 @@ class Histogram extends Collector
      *
      * @return float[]
      */
-    public static function exponentialBuckets(float $start, float $growthFactor, int $numberOfBuckets): array
+    public static function exponentialBuckets($start, $growthFactor, $numberOfBuckets)
     {
         if ($numberOfBuckets < 1) {
             throw new InvalidArgumentException('Number of buckets must be a positive integer');
@@ -116,7 +114,7 @@ class Histogram extends Collector
      * @param double $value e.g. 123
      * @param string[]  $labels e.g. ['status', 'opcode']
      */
-    public function observe(float $value, array $labels = []): void
+    public function observe($value, array $labels = [])
     {
         $this->assertLabelsAreDefinedCorrectly($labels);
 
@@ -136,7 +134,7 @@ class Histogram extends Collector
     /**
      * @return string
      */
-    public function getType(): string
+    public function getType()
     {
         return self::TYPE;
     }

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Prometheus;
 
 use InvalidArgumentException;
@@ -39,7 +37,7 @@ abstract class Collector
      * @param string $help
      * @param string[] $labels
      */
-    public function __construct(Adapter $storageAdapter, string $namespace, string $name, string $help, array $labels = [])
+    public function __construct(Adapter $storageAdapter, $namespace, $name, $help, array $labels = [])
     {
         $this->storageAdapter = $storageAdapter;
         $metricName = ($namespace !== '' ? $namespace . '_' : '') . $name;
@@ -55,12 +53,12 @@ abstract class Collector
     /**
      * @return string
      */
-    abstract public function getType(): string;
+    abstract public function getType();
 
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName()
     {
         return $this->name;
     }
@@ -68,7 +66,7 @@ abstract class Collector
     /**
      * @return string[]
      */
-    public function getLabelNames(): array
+    public function getLabelNames()
     {
         return $this->labels;
     }
@@ -76,7 +74,7 @@ abstract class Collector
     /**
      * @return string
      */
-    public function getHelp(): string
+    public function getHelp()
     {
         return $this->help;
     }
@@ -84,7 +82,7 @@ abstract class Collector
     /**
      * @return string
      */
-    public function getKey(): string
+    public function getKey()
     {
         return sha1($this->getName() . serialize($this->getLabelNames()));
     }
@@ -92,7 +90,7 @@ abstract class Collector
     /**
      * @param string[] $labels
      */
-    protected function assertLabelsAreDefinedCorrectly(array $labels): void
+    protected function assertLabelsAreDefinedCorrectly(array $labels)
     {
         if (count($labels) !== count($this->labels)) {
             throw new InvalidArgumentException(sprintf('Labels are not defined correctly: %s', print_r($labels, true)));
@@ -102,7 +100,7 @@ abstract class Collector
     /**
      * @param string $metricName
      */
-    public static function assertValidMetricName(string $metricName): void
+    public static function assertValidMetricName($metricName)
     {
         if (preg_match(self::RE_METRIC_NAME, $metricName) !== 1) {
             throw new InvalidArgumentException("Invalid metric name: '" . $metricName . "'");
@@ -112,7 +110,7 @@ abstract class Collector
     /**
      * @param string $label
      */
-    public static function assertValidLabel(string $label): void
+    public static function assertValidLabel($label)
     {
         if (preg_match(self::RE_LABEL_NAME, $label) !== 1) {
             throw new InvalidArgumentException("Invalid label name: '" . $label . "'");

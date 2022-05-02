@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Prometheus\Storage;
 
 use InvalidArgumentException;
@@ -65,7 +63,7 @@ class Redis implements Adapter
      * @return self
      * @throws StorageException
      */
-    public static function fromExistingConnection(\Redis $redis): self
+    public static function fromExistingConnection(\Redis $redis)
     {
         if ($redis->isConnected() === false) {
             throw new StorageException('Connection to Redis server not established');
@@ -81,7 +79,7 @@ class Redis implements Adapter
     /**
      * @param mixed[] $options
      */
-    public static function setDefaultOptions(array $options): void
+    public static function setDefaultOptions(array $options)
     {
         self::$defaultOptions = array_merge(self::$defaultOptions, $options);
     }
@@ -89,7 +87,7 @@ class Redis implements Adapter
     /**
      * @param string $prefix
      */
-    public static function setPrefix(string $prefix): void
+    public static function setPrefix($prefix)
     {
         self::$prefix = $prefix;
     }
@@ -98,7 +96,7 @@ class Redis implements Adapter
      * @deprecated use replacement method wipeStorage from Adapter interface
      * @throws StorageException
      */
-    public function flushRedis(): void
+    public function flushRedis()
     {
         $this->wipeStorage();
     }
@@ -106,7 +104,7 @@ class Redis implements Adapter
     /**
      * @inheritDoc
      */
-    public function wipeStorage(): void
+    public function wipeStorage()
     {
         $this->ensureOpenConnection();
 
@@ -143,7 +141,7 @@ LUA
      *
      * @return string
      */
-    private function metaKey(array $data): string
+    private function metaKey(array $data)
     {
         return implode(':', [
             $data['name'],
@@ -156,7 +154,7 @@ LUA
      *
      * @return string
      */
-    private function valueKey(array $data): string
+    private function valueKey(array $data)
     {
         return implode(':', [
             $data['name'],
@@ -169,7 +167,7 @@ LUA
      * @return MetricFamilySamples[]
      * @throws StorageException
      */
-    public function collect(): array
+    public function collect()
     {
         $this->ensureOpenConnection();
         $metrics = $this->collectHistograms();
@@ -177,7 +175,7 @@ LUA
         $metrics = array_merge($metrics, $this->collectCounters());
         $metrics = array_merge($metrics, $this->collectSummaries());
         return array_map(
-            function (array $metric): MetricFamilySamples {
+            function (array $metric) {
                 return new MetricFamilySamples($metric);
             },
             $metrics
@@ -187,7 +185,7 @@ LUA
     /**
      * @throws StorageException
      */
-    private function ensureOpenConnection(): void
+    private function ensureOpenConnection()
     {
         if ($this->connectionInitialized === true) {
             return;
@@ -211,7 +209,7 @@ LUA
     /**
      * @throws StorageException
      */
-    private function connectToServer(): void
+    private function connectToServer()
     {
         try {
             $connection_successful = false;
@@ -236,7 +234,7 @@ LUA
      * @param mixed[] $data
      * @throws StorageException
      */
-    public function updateHistogram(array $data): void
+    public function updateHistogram(array $data)
     {
         $this->ensureOpenConnection();
         $bucketToIncrease = '+Inf';
@@ -276,7 +274,7 @@ LUA
      * @param mixed[] $data
      * @throws StorageException
      */
-    public function updateSummary(array $data): void
+    public function updateSummary(array $data)
     {
         $this->ensureOpenConnection();
 
@@ -309,7 +307,7 @@ LUA
      * @param mixed[] $data
      * @throws StorageException
      */
-    public function updateGauge(array $data): void
+    public function updateGauge(array $data)
     {
         $this->ensureOpenConnection();
         $metaData = $data;
@@ -347,7 +345,7 @@ LUA
      * @param mixed[] $data
      * @throws StorageException
      */
-    public function updateCounter(array $data): void
+    public function updateCounter(array $data)
     {
         $this->ensureOpenConnection();
         $metaData = $data;
@@ -379,7 +377,7 @@ LUA
      * @param mixed[] $data
      * @return mixed[]
      */
-    private function metaData(array $data): array
+    private function metaData(array $data)
     {
         $metricsMetaData = $data;
         unset($metricsMetaData['value'], $metricsMetaData['command'], $metricsMetaData['labelValues']);
@@ -389,7 +387,7 @@ LUA
     /**
      * @return mixed[]
      */
-    private function collectHistograms(): array
+    private function collectHistograms()
     {
         $keys = $this->redis->sMembers(self::$prefix . Histogram::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
         sort($keys);
@@ -468,7 +466,7 @@ LUA
      *
      * @return string
      */
-    private function removePrefixFromKey(string $key): string
+    private function removePrefixFromKey($key)
     {
         // @phpstan-ignore-next-line false positive, phpstan thinks getOptions returns int
         if ($this->redis->getOption(\Redis::OPT_PREFIX) === null) {
@@ -481,7 +479,7 @@ LUA
     /**
      * @return mixed[]
      */
-    private function collectSummaries(): array
+    private function collectSummaries()
     {
         $math = new Math();
         $summaryKey = self::$prefix . Summary::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX;
@@ -569,7 +567,7 @@ LUA
     /**
      * @return mixed[]
      */
-    private function collectGauges(): array
+    private function collectGauges()
     {
         $keys = $this->redis->sMembers(self::$prefix . Gauge::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
         sort($keys);
@@ -587,7 +585,7 @@ LUA
                     'value' => $value,
                 ];
             }
-            usort($gauge['samples'], function ($a, $b): int {
+            usort($gauge['samples'], function ($a, $b) {
                 return strcmp(implode("", $a['labelValues']), implode("", $b['labelValues']));
             });
             $gauges[] = $gauge;
@@ -598,7 +596,7 @@ LUA
     /**
      * @return mixed[]
      */
-    private function collectCounters(): array
+    private function collectCounters()
     {
         $keys = $this->redis->sMembers(self::$prefix . Counter::TYPE . self::PROMETHEUS_METRIC_KEYS_SUFFIX);
         sort($keys);
@@ -616,7 +614,7 @@ LUA
                     'value' => $value,
                 ];
             }
-            usort($counter['samples'], function ($a, $b): int {
+            usort($counter['samples'], function ($a, $b) {
                 return strcmp(implode("", $a['labelValues']), implode("", $b['labelValues']));
             });
             $counters[] = $counter;
@@ -628,7 +626,7 @@ LUA
      * @param int $cmd
      * @return string
      */
-    private function getRedisCommand(int $cmd): string
+    private function getRedisCommand($cmd)
     {
         switch ($cmd) {
             case Adapter::COMMAND_INCREMENT_INTEGER:
@@ -646,7 +644,7 @@ LUA
      * @param mixed[] $data
      * @return string
      */
-    private function toMetricKey(array $data): string
+    private function toMetricKey(array $data)
     {
         return implode(':', [self::$prefix, $data['type'], $data['name']]);
     }
@@ -656,7 +654,7 @@ LUA
      * @return string
      * @throws RuntimeException
      */
-    private function encodeLabelValues(array $values): string
+    private function encodeLabelValues(array $values)
     {
         $json = json_encode($values);
         if (false === $json) {
@@ -670,7 +668,7 @@ LUA
      * @return mixed[]
      * @throws RuntimeException
      */
-    private function decodeLabelValues(string $values): array
+    private function decodeLabelValues($values)
     {
         $json = base64_decode($values, true);
         if (false === $json) {
